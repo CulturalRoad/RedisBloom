@@ -242,3 +242,34 @@ HeapBucket *TopK_List(TopK *topk) {
     qsort(heapList, topk->k, sizeof(*heapList), cmpHeapBucket);
     return heapList;
 }
+
+size_t TopK_Fade(TopK *topk) {
+    assert(topk);
+
+    Bucket *runner, *bucketEnd;
+    HeapBucket *heapRunner;
+    counter_t *countPtr;
+    counter_t res = 0;
+
+    bucketEnd = topk->data + (topk->depth * topk->width);
+    // decay value of bucket count to half
+    for (runner = topk->data; runner != bucketEnd; ++runner) {
+            countPtr = &runner->count;
+            if(*countPtr > 0) {
+                *countPtr >>= 1;
+                res++;
+            }
+    }
+
+    // decay value of heap to half
+    for (int32_t i = topk->k - 1; i >= 0; --i) {
+        heapRunner = topk->heap + i;
+        countPtr = &heapRunner->count;
+        if (*countPtr > 0) {
+            *countPtr >>= 1;
+            res++;
+        }
+    }
+
+    return res;
+}

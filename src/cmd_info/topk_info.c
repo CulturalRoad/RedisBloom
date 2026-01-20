@@ -58,6 +58,30 @@ static const RedisModuleCommandInfo TOPK_COUNT_INFO = {
 };
 
 // ===============================
+// TOPK.FADE key
+// ===============================
+static const RedisModuleCommandKeySpec TOPK_FADE_KEYSPECS[] = {
+    {.flags = REDISMODULE_CMD_KEY_RW,
+     .begin_search_type = REDISMODULE_KSPEC_BS_INDEX,
+     .bs.index = {.pos = 1},
+     .find_keys_type = REDISMODULE_KSPEC_FK_RANGE,
+     .fk.range = {.lastkey = 0, .keystep = 1, .limit = 0}},
+    {0}};
+
+static const RedisModuleCommandArg TOPK_FADE_ARGS[] = {
+    {.name = "key", .type = REDISMODULE_ARG_TYPE_KEY, .key_spec_index = 0}, {0}};
+
+static const RedisModuleCommandInfo TOPK_FADE_INFO = {
+    .version = REDISMODULE_COMMAND_INFO_VERSION,
+    .summary = "Decay count of bucket_items and heap_items to half",
+    .complexity = "O(k) + O(width * depth)",
+    .since = "2.0.0",
+    .arity = 2,
+    .key_specs = (RedisModuleCommandKeySpec *)TOPK_FADE_KEYSPECS,
+    .args = (RedisModuleCommandArg *)TOPK_FADE_ARGS,
+};
+
+// ===============================
 // TOPK.INCRBY key item increment [item increment ...]
 // ===============================
 static const RedisModuleCommandKeySpec TOPK_INCRBY_KEYSPECS[] = {
@@ -218,6 +242,14 @@ int RegisterTopKCommandInfos(RedisModuleCtx *ctx) {
         return REDISMODULE_ERR;
     }
     if (RedisModule_SetCommandInfo(cmd_count, &TOPK_COUNT_INFO) == REDISMODULE_ERR) {
+        return REDISMODULE_ERR;
+    }
+
+    RedisModuleCommand *cmd_fade = RedisModule_GetCommand(ctx, "TOPK.FADE");
+    if (!cmd_fade) {
+        return REDISMODULE_ERR;
+    }
+    if (RedisModule_SetCommandInfo(cmd_fade, &TOPK_FADE_INFO) == REDISMODULE_ERR) {
         return REDISMODULE_ERR;
     }
 
