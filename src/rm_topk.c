@@ -285,6 +285,25 @@ static int TopK_Info_Cmd(RedisModuleCtx *ctx, RedisModuleString **argv, int argc
     return REDISMODULE_OK;
 }
 
+static int TopK_Fade_Cmd(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {
+    
+    if (argc != 2)
+        return RedisModule_WrongArity(ctx);
+
+    TopK *topk = NULL;
+    if (GetTopKKey(ctx, argv[1], &topk, REDISMODULE_READ | REDISMODULE_WRITE) != REDISMODULE_OK) {
+        return REDISMODULE_OK;
+    }
+
+    size_t count = 0;
+    count = TopK_Fade(topk);
+
+    RedisModule_ReplyWithLongLong(ctx, count);
+    RedisModule_ReplicateVerbatim(ctx);
+    
+    return REDISMODULE_OK;
+}
+
 /**************** Module functions *********************************/
 
 static void TopKRdbSave(RedisModuleIO *io, void *obj) {
@@ -385,6 +404,7 @@ int TopKModule_onLoad(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {
     RegisterCommand(ctx, "topk.count", TopK_Count_Cmd, "readonly", "read");
     RegisterCommand(ctx, "topk.list", TopK_List_Cmd, "readonly", "read");
     RegisterCommand(ctx, "topk.info", TopK_Info_Cmd, "readonly", "read fast");
+    RegisterCommand(ctx, "topk.fade", TopK_Fade_Cmd, "write deny-oom", "write");
 
 #undef RegisterCommand
     if (RegisterTopKCommandInfos(ctx) != REDISMODULE_OK)

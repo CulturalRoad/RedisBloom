@@ -85,3 +85,6 @@ size_t TopK_Count(TopK *topk, const char *item, size_t itemlen);
 
 /*  Returns full 'heapList' of items in 'topk' DS. */
 HeapBucket *TopK_List(TopK *topk);
+
+/* Fade the items scores to half */
+size_t TopK_Fade(TopK *topk);
