@@ -265,7 +265,9 @@ size_t TopK_Fade(TopK *topk) {
     for (int32_t i = topk->k - 1; i >= 0; --i) {
         heapRunner = topk->heap + i;
         countPtr = &heapRunner->count;
-        if (*countPtr > 0) {
+        // 已上榜的条目只减到 1，不减到 0 —— 否则 TOPK.LIST 会把它过滤掉
+        // 旧条目压到 1 之后 heapMin = 1，TopK_Add 里是 maxCount >= heapMin，任何新事件（分数 ≥ 1）都能顶掉最弱的。
+        if (*countPtr > 1) { 
             *countPtr >>= 1;
             res++;
         }
